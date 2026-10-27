@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harsh Edit 320</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #0b0b0f;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    header {
+      height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: #15151c;
+      border-bottom: 1px solid #292933;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 21px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #ff1744;
+    }
+
+    .menu {
+      font-size: 28px;
+      cursor: pointer;
+      padding: 5px 10px;
+    }
+
+    #menuBox {
+      display: none;
+      position: absolute;
+      right: 12px;
+      top: 58px;
+      width: 190px;
+      background: #1d1d26;
+      border: 1px solid #353541;
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: 0 10px 30px #000;
+    }
+
+    #menuBox button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: white;
+      padding: 13px;
+      text-align: left;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    #menuBox button:hover {
+      background: #30303b;
+    }
+
+    main {
+      max-width: 700px;
+      margin: auto;
+      padding: 18px 12px 50px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #201018, #15151c);
+      border: 1px solid #33333e;
+      border-radius: 20px;
+      padding: 22px 16px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-size: 27px;
+      font-weight: 900;
+    }
+
+    .hero p {
+      color: #c7c7cf;
+      margin-top: 7px;
+      line-height: 1.5;
+    }
+
+    .project {
+      background: #17171f;
+      border: 1px solid #30303a;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 25px rgba(0,0,0,.25);
+    }
+
+    .project img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+
+    .projectInfo {
+      padding: 15px;
+    }
+
+    .projectInfo h2 {
+      font-size: 19px;
+      margin-bottom: 6px;
+    }
+
+    .date {
+      color: #9999a5;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    .download {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: #ff1744;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .empty {
+      text-align: center;
+      color: #aaa;
+      padding: 40px 10px;
+    }
+
+    /* Gate */
+    #gate {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.88);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .gateBox {
+      width: 100%;
+      max-width: 390px;
+      background: #181820;
+      border: 1px solid #373742;
+      border-radius: 22px;
+      padding: 25px 18px;
+      text-align: center;
+    }
+
+    .gateBox h2 {
+      font-size: 23px;
+      margin-bottom: 12px;
+    }
+
+    .gateBox p {
+      color: #d0d0d7;
+      line-height: 1.55;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    .gateBtn {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      margin-top: 9px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .youtube {
+      background: #ff0033;
+      color: white;
+    }
+
+    .telegram {
+      background: #229ed9;
+      color: white;
+    }
+
+    .unlock {
+      background: #fff;
+      color: #111;
+    }
+
+    .close {
+      background: transparent;
+      color: #aaa;
+      border: 1px solid #444;
+    }
+
+    footer {
+      text-align: center;
+      color: #777;
+      font-size: 12px;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">HARSH <span>EDIT 320</span></div>
+
+  <div class="menu" onclick="toggleMenu()">⋮</div>
+
+  <div id="menuBox">
+    <button onclick="googleLogin()">
+      <span style="font-size:20px;">G</span>
+    </button>
+
+    <button id="logoutBtn" onclick="logout()" style="display:none;">
+      Logout
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <h1>🔥 Harsh Edit 320</h1>
+    <p>
+      Alight Motion Projects • XML • Trending Edits<br>
+      रोज नए Project & Editing Material
+    </p>
+  </section>
+
+  <section id="projects">
+    <div class="empty">Projects loading...</div>
+  </section>
+
+</main>
+
+<footer>
+  © 2026 Harsh Edit 320
+</footer>
+
+<!-- Download Gate -->
+<div id="gate">
+  <div class="gateBox">
+
+    <h2>🔥 PROJECT UNLOCK</h2>
+
+    <p>
+      📲 Alight Motion Project મેળવવા માટે પહેલા
+      અમારા YouTube Channel ને Subscribe કરો અને
+      Telegram Channel ને Join કરો. ❤️
+      <br><br>
+      📦 નવા Alight Motion Project + XML File
+      Telegram પર મળશે.
+    </p>
+
+    <button class="gateBtn youtube" onclick="openYoutube()">
+      ▶️ YouTube Subscribe કરો
+    </button>
+
+    <button class="gateBtn telegram" onclick="openTelegram()">
+      ✈️ Telegram Channel Join કરો
+    </button>
+
+    <button class="gateBtn unlock" onclick="unlockProject()">
+      ✅ I SUBSCRIBED & JOINED
+    </button>
+
+    <button class="gateBtn close" onclick="closeGate()">
+      Close
+    </button>
+
+  </div>
+</div>
+
+<script type="module">
+
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    orderBy
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+  /*
+   * Firebase Console → Project Settings → Your apps
+   * se apna actual firebaseConfig yahan paste karein.
+   */
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCZVw_OQ5L9yWrqGqxqJiaQoQXm6GHwg2g",
+    authDomain: "harsh-edit-320.firebaseapp.com",
+    projectId: "harsh-edit-320",
+    storageBucket: "harsh-edit-320.firebasestorage.app",
+    messagingSenderId: "401523410549",
+    appId: "1:401523410549:web:131a1f062dd57638395a3c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  const ADMIN_EMAIL = "royalthakor7861@gmail.com";
+
+  let selectedProject = null;
+  let loggedInUser = null;
+
+  window.toggleMenu = function () {
+    const box = document.getElementById("menuBox");
+
+    box.style.display =
+      box.style.display === "block" ? "none" : "block";
+  };
+
+  window.googleLogin = async function () {
+
+    try {
+
+      const result = await signInWithPopup(auth, provider);
+
+      loggedInUser = result.user;
+
+      alert("Google Login successful: " + loggedInUser.email);
+
+      if (
+        loggedInUser.email.toLowerCase() ===
+        ADMIN_EMAIL.toLowerCase()
+      ) {
+
+        window.location.href = "admin.html";
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Google Login failed. Please try again.");
+
+    }
+
+  };
+
+  window.logout = async function () {
+
+    await signOut(auth);
+
+    alert("Logged out");
+
+  };
+
+  onAuthStateChanged(auth, (user) => {
+
+    loggedInUser = user;
+
+    const logoutBtn =
+      document.getElementById("logoutBtn");
+
+    if (user) {
+      logoutBtn.style.display = "block";
+    } else {
+      logoutBtn.style.display = "none";
+    }
+
+  });
+
+  async function loadProjects() {
+
+    const container =
+      document.getElementById("projects");
+
+    try {
+
+      const q = query(
+        collection(db, "projects"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snapshot = await getDocs(q);
+
+      container.innerHTML = "";
+
+      if (snapshot.empty) {
+
+        container.innerHTML =
+          '<div class="empty">No projects available yet.</div>';
+
+        return;
+
+      }
+
+      snapshot.forEach((doc) => {
+
+        const data = doc.data();
+
+        const card =
+          document.createElement("article");
+
+        card.className = "project";
+
+        card.innerHTML = `
+          <img
+            src="${escapeHtml(data.thumbnail || "")}"
+            alt="Project Thumbnail"
+          >
+
+          <div class="projectInfo">
+
+            <h2>${escapeHtml(data.title || "Alight Motion Project")}</h2>
+
+            <div class="date">
+              ${data.date || ""}
+            </div>
+
+            <button class="download">
+              🔓 DOWNLOAD PROJECT
+            </button>
+
+          </div>
+        `;
+
+        card.querySelector(".download")
+          .addEventListener("click", () => {
+
+            selectedProject = data;
+
+            document.getElementById("gate")
+              .style.display = "flex";
+
+          });
+
+        container.appendChild(card);
+
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      container.innerHTML =
+        '<div class="empty">Projects load nahi ho rahe. Firebase config/rules check karein.</div>';
+
+    }
+
+  }
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+  }
+
+  window.openYoutube = function () {
+
+    window.open(
+      "https://youtube.com/@harsh.editz.320?si=kjJnor_DWduT6NTK",
+      "_blank"
+    );
+
+  };
+
+  window.openTelegram = function () {
+
+    window.open(
+      "https://t.me/+eeJTuxpsQ_M4ODBl",
+      "_blank"
+    );
+
+  };
+
+  window.unlockProject = function () {
+
+    if (!selectedProject || !selectedProject.link) {
+
+      alert("Project link available nahi hai.");
+
+      return;
+
+    }
+
+    /*
+     * YouTube subscription ko browser se automatically
+     * verify nahi kiya ja sakta. User confirmation ke baad
+     * project link open hota hai.
+     */
+
+    window.open(
+      selectedProject.link,
+      "_blank"
+    );
+
+    closeGate();
+
+  };
+
+  window.closeGate = function () {
+
+    document.getElementById("gate")
+      .style.display = "none";
+
+  };
+
+  loadProjects();
+
+</script>
+
+</body>
+  </html>

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b0f">
   <title>Harsh Edit 320</title>
 
   <style>
@@ -20,11 +21,12 @@
     }
 
     header {
-      height: 65px;
+      min-height: 65px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      gap: 10px;
+      padding: 10px 16px;
       background: #15151c;
       border-bottom: 1px solid #292933;
       position: sticky;
@@ -36,6 +38,7 @@
       font-size: 21px;
       font-weight: 900;
       letter-spacing: 1px;
+      white-space: nowrap;
     }
 
     .logo span {
@@ -46,6 +49,7 @@
       font-size: 28px;
       cursor: pointer;
       padding: 5px 10px;
+      user-select: none;
     }
 
     #menuBox {
@@ -53,7 +57,7 @@
       position: absolute;
       right: 12px;
       top: 58px;
-      width: 190px;
+      width: 210px;
       background: #1d1d26;
       border: 1px solid #353541;
       border-radius: 14px;
@@ -74,6 +78,19 @@
 
     #menuBox button:hover {
       background: #30303b;
+    }
+
+    .googleIcon {
+      display: inline-flex;
+      width: 25px;
+      height: 25px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: white;
+      color: #4285f4;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
     }
 
     main {
@@ -102,6 +119,27 @@
       line-height: 1.5;
     }
 
+    .searchBox {
+      margin-bottom: 18px;
+    }
+
+    #projectSearch {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: #17171f;
+      color: white;
+      border: 1px solid #30303a;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #projectSearch:focus {
+      border-color: #ff1744;
+      box-shadow: 0 0 10px #ff174455;
+    }
+
     .project {
       background: #17171f;
       border: 1px solid #30303a;
@@ -125,6 +163,7 @@
     .projectInfo h2 {
       font-size: 19px;
       margin-bottom: 6px;
+      overflow-wrap: anywhere;
     }
 
     .date {
@@ -145,13 +184,18 @@
       cursor: pointer;
     }
 
+    .download:active {
+      transform: scale(.98);
+    }
+
     .empty {
       text-align: center;
       color: #aaa;
       padding: 40px 10px;
+      line-height: 1.6;
     }
 
-    /* Gate */
+    /* Download Gate */
     #gate {
       display: none;
       position: fixed;
@@ -223,6 +267,20 @@
       font-size: 12px;
       padding: 20px;
     }
+
+    @media (max-width: 380px) {
+      header {
+        padding: 10px;
+      }
+
+      .logo {
+        font-size: 17px;
+      }
+
+      .menu {
+        padding: 5px;
+      }
+    }
   </style>
 </head>
 
@@ -231,15 +289,16 @@
 <header>
   <div class="logo">HARSH <span>EDIT 320</span></div>
 
-  <div class="menu" onclick="toggleMenu()">⋮</div>
+  <div class="menu" onclick="toggleMenu()" aria-label="Menu">⋮</div>
 
   <div id="menuBox">
     <button onclick="googleLogin()">
-      <span style="font-size:20px;">G</span>
+      <span class="googleIcon">G</span>
+      Login with Google
     </button>
 
     <button id="logoutBtn" onclick="logout()" style="display:none;">
-      Logout
+      🚪 Logout
     </button>
   </div>
 </header>
@@ -253,6 +312,17 @@
       रोज नए Project & Editing Material
     </p>
   </section>
+
+  <!-- Project Search -->
+  <div class="searchBox">
+    <input
+      type="search"
+      id="projectSearch"
+      placeholder="🔍 Project ka naam search karein..."
+      autocomplete="off"
+      aria-label="Search projects"
+    >
+  </div>
 
   <section id="projects">
     <div class="empty">Projects loading...</div>
@@ -319,11 +389,6 @@
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
-  /*
-   * Firebase Console → Project Settings → Your apps
-   * se apna actual firebaseConfig yahan paste karein.
-   */
-
   const firebaseConfig = {
     apiKey: "AIzaSyCZVw_OQ5L9yWrqGqxqJiaQoQXm6GHwg2g",
     authDomain: "harsh-edit-320.firebaseapp.com",
@@ -343,7 +408,9 @@
 
   let selectedProject = null;
   let loggedInUser = null;
+  let allProjects = [];
 
+  // Three-dot menu
   window.toggleMenu = function () {
     const box = document.getElementById("menuBox");
 
@@ -351,65 +418,118 @@
       box.style.display === "block" ? "none" : "block";
   };
 
+  // Google Login
   window.googleLogin = async function () {
-
     try {
-
       const result = await signInWithPopup(auth, provider);
 
       loggedInUser = result.user;
 
-      alert("Google Login successful: " + loggedInUser.email);
-
       if (
-        loggedInUser.email.toLowerCase() ===
-        ADMIN_EMAIL.toLowerCase()
+        loggedInUser.email &&
+        loggedInUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
       ) {
-
         window.location.href = "admin.html";
-
+      } else {
+        alert("Google Login successful: " + loggedInUser.email);
       }
 
     } catch (error) {
-
-      console.error(error);
-
-      alert("Google Login failed. Please try again.");
-
+      console.error("Google Login error:", error);
+      alert("Google Login failed: " + error.message);
     }
-
   };
 
+  // Logout
   window.logout = async function () {
-
-    await signOut(auth);
-
-    alert("Logged out");
-
+    try {
+      await signOut(auth);
+      alert("Logged out");
+    } catch (error) {
+      console.error(error);
+      alert("Logout failed: " + error.message);
+    }
   };
 
+  // Update login state
   onAuthStateChanged(auth, (user) => {
-
     loggedInUser = user;
 
-    const logoutBtn =
-      document.getElementById("logoutBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-    if (user) {
-      logoutBtn.style.display = "block";
-    } else {
-      logoutBtn.style.display = "none";
-    }
-
+    logoutBtn.style.display = user ? "block" : "none";
   });
 
-  async function loadProjects() {
+  // Escape database text before displaying it
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[character]);
+  }
 
-    const container =
-      document.getElementById("projects");
+  // Render projects and filter by title
+  function renderProjects(searchText = "") {
+    const container = document.getElementById("projects");
+    const term = searchText.trim().toLowerCase();
+
+    const filteredProjects = allProjects.filter(data =>
+      String(data.title || "").toLowerCase().includes(term)
+    );
+
+    container.innerHTML = "";
+
+    if (filteredProjects.length === 0) {
+      container.innerHTML = `
+        <div class="empty">
+          ${term
+            ? "🔎 Koi matching project nahi mila. Dusra naam search karein."
+            : "No projects available yet."}
+        </div>`;
+      return;
+    }
+
+    filteredProjects.forEach((data) => {
+      const card = document.createElement("article");
+      card.className = "project";
+
+      card.innerHTML = `
+        <img
+          src="${escapeHtml(data.thumbnail || "")}"
+          alt="Project Thumbnail"
+          loading="lazy"
+        >
+
+        <div class="projectInfo">
+          <h2>${escapeHtml(data.title || "Alight Motion Project")}</h2>
+
+          <div class="date">
+            ${escapeHtml(data.date || "")}
+          </div>
+
+          <button class="download">
+            🔓 DOWNLOAD PROJECT
+          </button>
+        </div>
+      `;
+
+      card.querySelector(".download").addEventListener("click", () => {
+        selectedProject = data;
+        document.getElementById("gate").style.display = "flex";
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  // Load projects from Firebase
+  async function loadProjects() {
+    const container = document.getElementById("projects");
 
     try {
-
       const q = query(
         collection(db, "projects"),
         orderBy("createdAt", "desc")
@@ -417,136 +537,80 @@
 
       const snapshot = await getDocs(q);
 
-      container.innerHTML = "";
+      allProjects = snapshot.docs.map(doc => doc.data());
 
-      if (snapshot.empty) {
-
-        container.innerHTML =
-          '<div class="empty">No projects available yet.</div>';
-
-        return;
-
-      }
-
-      snapshot.forEach((doc) => {
-
-        const data = doc.data();
-
-        const card =
-          document.createElement("article");
-
-        card.className = "project";
-
-        card.innerHTML = `
-          <img
-            src="${escapeHtml(data.thumbnail || "")}"
-            alt="Project Thumbnail"
-          >
-
-          <div class="projectInfo">
-
-            <h2>${escapeHtml(data.title || "Alight Motion Project")}</h2>
-
-            <div class="date">
-              ${data.date || ""}
-            </div>
-
-            <button class="download">
-              🔓 DOWNLOAD PROJECT
-            </button>
-
-          </div>
-        `;
-
-        card.querySelector(".download")
-          .addEventListener("click", () => {
-
-            selectedProject = data;
-
-            document.getElementById("gate")
-              .style.display = "flex";
-
-          });
-
-        container.appendChild(card);
-
-      });
+      renderProjects(
+        document.getElementById("projectSearch").value
+      );
 
     } catch (error) {
-
-      console.error(error);
+      console.error("Project loading error:", error);
 
       container.innerHTML =
         '<div class="empty">Projects load nahi ho rahe. Firebase config/rules check karein.</div>';
-
     }
-
   }
 
-  function escapeHtml(value) {
+  // Search updates as the user types
+  document.getElementById("projectSearch").addEventListener("input", (event) => {
+    renderProjects(event.target.value);
+  });
 
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-
-  }
-
+  // YouTube and Telegram
   window.openYoutube = function () {
-
     window.open(
       "https://youtube.com/@harsh.editz.320?si=kjJnor_DWduT6NTK",
-      "_blank"
+      "_blank",
+      "noopener,noreferrer"
     );
-
   };
 
   window.openTelegram = function () {
-
     window.open(
       "https://t.me/+eeJTuxpsQ_M4ODBl",
-      "_blank"
+      "_blank",
+      "noopener,noreferrer"
     );
-
   };
 
+  // Open project link after user confirmation
   window.unlockProject = function () {
-
     if (!selectedProject || !selectedProject.link) {
-
       alert("Project link available nahi hai.");
-
       return;
-
     }
 
-    /*
-     * YouTube subscription ko browser se automatically
-     * verify nahi kiya ja sakta. User confirmation ke baad
-     * project link open hota hai.
-     */
+    try {
+      const url = new URL(selectedProject.link);
 
-    window.open(
-      selectedProject.link,
-      "_blank"
-    );
+      if (!["https:", "http:"].includes(url.protocol)) {
+        throw new Error("Invalid link");
+      }
 
-    closeGate();
+      window.open(url.href, "_blank", "noopener,noreferrer");
+      closeGate();
 
+    } catch (error) {
+      alert("Project link galat hai. Admin se check karwayein.");
+    }
   };
 
   window.closeGate = function () {
-
-    document.getElementById("gate")
-      .style.display = "none";
-
+    document.getElementById("gate").style.display = "none";
+    selectedProject = null;
   };
 
+  // Close gate by tapping outside it
+  document.getElementById("gate").addEventListener("click", (event) => {
+    if (event.target.id === "gate") {
+      closeGate();
+    }
+  });
+
+  // Start loading
   loadProjects();
 
 </script>
 
 </body>
-  </html>
+      </html

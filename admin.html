@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harsh Edit 320 Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b12;color:white;font-family:Arial,sans-serif;padding:16px}
+.wrap{max-width:650px;margin:auto}
+header,.card{background:#181821;border:1px solid #343442;border-radius:18px;padding:18px;margin-bottom:16px}
+h1{font-size:24px;margin:0 0 8px}
+p{color:#bbb;line-height:1.5}
+input,textarea{width:100%;padding:13px;margin:7px 0 12px;border:1px solid #454553;border-radius:10px;background:#101018;color:white;font-size:15px}
+textarea{min-height:90px;resize:vertical}
+button{padding:13px 16px;border:0;border-radius:10px;background:#ff1744;color:white;font-weight:bold;font-size:15px;cursor:pointer;margin:4px 3px 4px 0}
+.secondary{background:#30303d}
+.item{border-top:1px solid #393945;padding:14px 0;overflow-wrap:anywhere}
+.item img{width:100%;max-height:200px;object-fit:cover;border-radius:10px}
+.small{font-size:12px;color:#aaa}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>👑 HARSH EDIT 320</h1>
+<p>Admin Panel — Projects Manager</p>
+<button id="loginBtn">Google Login</button>
+<button id="logoutBtn" class="secondary hidden">Logout</button>
+<p id="status">Please sign in with your admin Google account.</p>
+</header>
+
+<section id="adminArea" class="hidden">
+<div class="card">
+<h2 id="formTitle">➕ Add New Project</h2>
+<label>Project Title</label>
+<input id="title" placeholder="Example: Trending Beat Mark Project">
+<label>Thumbnail Image URL</label>
+<input id="thumbnail" type="url" placeholder="https://example.com/thumbnail.jpg">
+<label>Alight Motion / XML Download Link</label>
+<input id="link" type="url" placeholder="https://...">
+<button id="saveBtn">Save Project</button>
+<button id="cancelBtn" class="secondary hidden">Cancel Edit</button>
+<p class="small">Image and project links must be valid public URLs.</p>
+</div>
+
+<div class="card">
+<h2>📂 Existing Projects</h2>
+<div id="projectList">Loading projects...</div>
+</div>
+</section>
+</div>
+
+<script type="module">
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import {
+getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,
+doc,serverTimestamp,query,orderBy
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import {
+getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+/* Use the EXACT firebaseConfig from your Firebase Console */
+const firebaseConfig = {
+  apiKey: "AlzaSyCZVw_0Q5L9yWrqG qxqJiaQoQXm6GHwg2g",
+  authDomain: "harsh-edit-320.firebaseapp.com",
+  projectId: "harsh-edit-320",
+  storageBucket: "harsh-edit-320.firebasestorage.app",
+  messagingSenderId: "401523410549",
+  appId: "1:401523410549:web:131a1f062dd57638395a3c"
+};
+
+const ADMIN_EMAIL = "royalthakor7861@gmail.com";
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+const $ = id => document.getElementById(id);
+let currentUser = null;
+let editingId = null;
+
+function isAdmin(user){
+  return !!user && user.emailVerified &&
+    user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+$("loginBtn").onclick = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    console.error(e);
+    $("status").textContent = "Login failed: " + e.message;
+  }
+};
+
+$("logoutBtn").onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  $("loginBtn").classList.toggle("hidden", !!user);
+  $("logoutBtn").classList.toggle("hidden", !user);
+
+  if(isAdmin(user)){
+    $("status").textContent = "Admin signed in: " + user.email;
+    $("adminArea").classList.remove("hidden");
+    loadProjects();
+  } else {
+    $("adminArea").classList.add("hidden");
+    $("status").textContent = user
+      ? "Access denied. This Google account is not the authorized admin."
+      : "Please sign in with your admin Google account.";
+  }
+});
+
+function safeText(value){
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+
+async function loadProjects(){
+  if(!isAdmin(currentUser)) return;
+  const list = $("projectList");
+  list.textContent = "Loading...";
+  try {
+    const snap = await getDocs(
+      query(collection(db,"projects"),orderBy("createdAt","desc"))
+    );
+    list.innerHTML = "";
+    if(snap.empty){
+      list.textContent = "No projects yet. Add your first project above.";
+      return;
+    }
+    snap.forEach(s => {
+      const p = s.data();
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerHTML = `
+        ${p.thumbnail ? `<img src="${safeText(p.thumbnail)}" alt="Thumbnail">` : ""}
+        <h3>${safeText(p.title || "Untitled project")}</h3>
+        <p class="small">${safeText(p.link || "")}</p>
+        <button class="edit">Edit</button>
+        <button class="remove secondary">Delete</button>`;
+      el.querySelector(".edit").onclick = () => startEdit(s.id,p);
+      el.querySelector(".remove").onclick = () => removeProject(s.id);
+      list.appendChild(el);
+    });
+  } catch(e) {
+    console.error(e);
+    list.textContent = "Could not load projects. Check Firebase config and Firestore Rules.";
+  }
+}
+
+$("saveBtn").onclick = async () => {
+  if(!isAdmin(currentUser)){
+    alert("Admin access required.");
+    return;
+  }
+  const title = $("title").value.trim();
+  const thumbnail = $("thumbnail").value.trim();
+  const link = $("link").value.trim();
+
+  if(!title || !link){
+    alert("Project title and download link are required.");
+    return;
+  }
+  try {
+    const data = {
+      title, thumbnail, link,
+      date: new Date().toLocaleDateString("en-IN"),
+      updatedAt: serverTimestamp()
+    };
+    if(editingId){
+      await updateDoc(doc(db,"projects",editingId),data);
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(db,"projects"),data);
+    }
+    resetForm();
+    await loadProjects();
+    alert("Project saved successfully.");
+  } catch(e) {
+    console.error(e);
+    alert("Save failed. Check Firebase configuration and Firestore Rules.");
+  }
+};
+
+function startEdit(id,p){
+  editingId = id;
+  $("title").value = p.title || "";
+  $("thumbnail").value = p.thumbnail || "";
+  $("link").value = p.link || "";
+  $("formTitle").textContent = "✏️ Edit Project";
+  $("saveBtn").textContent = "Update Project";
+  $("cancelBtn").classList.remove("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function removeProject(id){
+  if(!isAdmin(currentUser)) return;
+  if(!confirm("Delete this project permanently?")) return;
+  try {
+    await deleteDoc(doc(db,"projects",id));
+    await loadProjects();
+  } catch(e) {
+    console.error(e);
+    alert("Delete failed. Check Firestore Rules.");
+  }
+}
+
+function resetForm(){
+  editingId = null;
+  $("title").value = "";
+  $("thumbnail").value = "";
+  $("link").value = "";
+  $("formTitle").textContent = "➕ Add New Project";
+  $("saveBtn").textContent = "Save Project";
+  $("cancelBtn").classList.add("hidden");
+}
+$("cancelBtn").onclick = resetForm;
+</script>
+</body>
+  </html>
